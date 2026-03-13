@@ -91,22 +91,25 @@ impl<'a> SaveFile {
             }
         }
 
-        if compressed {
-            // decompress
-            let mut archive = ZipArchive::new(Cursor::new(contents))?;
-            let mut gamestate = archive.by_index(0)?;
-            if gamestate.is_dir() {
-                return Err(SaveFileError::ParseError("Save file is a directory"));
-            }
-            if gamestate.name() != "gamestate" {
-                return Err(SaveFileError::ParseError("Unexpected file name"));
-            }
-            let gamestate_size = gamestate.size() as usize;
-            contents = Vec::with_capacity(gamestate_size);
-            if gamestate.read_to_end(&mut contents)? != gamestate_size {
-                return Err(SaveFileError::ParseError("Failed to read the entire file"));
-            }
-        }
+        let contents =
+            if compressed && let Ok(mut archive) = ZipArchive::new(Cursor::new(&contents)) {
+                // decompress
+                let mut gamestate = archive.by_index(0)?;
+                if gamestate.is_dir() {
+                    return Err(SaveFileError::ParseError("Save file is a directory"));
+                }
+                if gamestate.name() != "gamestate" {
+                    return Err(SaveFileError::ParseError("Unexpected file name"));
+                }
+                let gamestate_size = gamestate.size() as usize;
+                let mut archive_contents = Vec::with_capacity(gamestate_size);
+                if gamestate.read_to_end(&mut archive_contents)? != gamestate_size {
+                    return Err(SaveFileError::ParseError("Failed to read the entire file"));
+                }
+                archive_contents
+            } else {
+                contents
+            };
 
         let mut binary = false;
         if contents.len() > BINARY_HEADER.len() {

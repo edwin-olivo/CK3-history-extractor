@@ -7,8 +7,8 @@ use super::{
         super::game_data::{GameData, Localizable, LocalizationError, Localize},
         game_state::GameState,
         parser::{
-            types::{GameString, Shared, Wrapper, WrapperMut},
             GameObjectMap, GameObjectMapping, ParsingError, SaveFileValue,
+            types::{GameString, Shared, Wrapper, WrapperMut},
         },
     },
     Artifact, Culture, EntityRef, Faith, Finalize, FromGameObject, GameObjectDerived,
@@ -150,23 +150,8 @@ impl Character {
         return provinces;
     }
 
-    /// Gets the descendants of the character
-    pub fn get_descendants(&self) -> Vec<GameRef<Character>> {
-        let mut res = Vec::new();
-        let mut stack: Vec<GameRef<Character>> = Vec::new();
-        for child in self.children.iter() {
-            stack.push(child.clone());
-            res.push(child.clone());
-        }
-        while let Some(c) = stack.pop() {
-            if let Some(c) = c.get_internal().inner() {
-                for child in c.children.iter() {
-                    stack.push(child.clone());
-                    res.push(child.clone());
-                }
-            }
-        }
-        return res;
+    pub fn get_children(&self) -> &Vec<GameRef<Character>> {
+        &self.children
     }
 
     /// Gets the dynasty of the character

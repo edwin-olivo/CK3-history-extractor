@@ -7,7 +7,7 @@ use std::{
     env,
     fmt::{self, Debug, Display, Formatter},
     fs,
-    io::{stdin, stdout, IsTerminal},
+    io::{IsTerminal, stdin, stdout},
     ops::Not,
     time::Duration,
 };
@@ -16,9 +16,9 @@ use ck3_history_extractor_lib::{
     display::{GetPath, Renderer},
     game_data::{GameDataLoader, Localizable},
     save_file::{
+        GameState, SaveFile, SaveFileError,
         parser::SaveFileSection,
         structures::{GameObjectDerived, Player},
-        GameState, SaveFile, SaveFileError,
     },
 };
 
@@ -79,9 +79,6 @@ impl Display for UserError {
 /// 5. Prints the time taken to parse the save file
 ///
 fn main() -> Result<(), UserError> {
-    if cfg!(debug_assertions) {
-        env::set_var("RUST_BACKTRACE", "1");
-    }
     setup_panic!();
     //User IO
     let args = if env::args().len() < 2 {

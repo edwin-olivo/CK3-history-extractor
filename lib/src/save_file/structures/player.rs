@@ -2,7 +2,7 @@ use super::{
     super::{
         super::game_data::{GameData, Localizable, LocalizationError},
         game_state::GameState,
-        parser::{types::GameString, GameObjectMap, GameObjectMapping, ParsingError},
+        parser::{GameObjectMap, GameObjectMapping, ParsingError, types::GameString},
     },
     Character, EntityRef, FromGameObject, GameObjectDerived, GameRef, LineageNode,
 };
@@ -80,9 +80,9 @@ mod display {
     };
 
     use image::{
+        Delay, Frame, Rgb,
         buffer::ConvertBuffer,
         codecs::gif::{GifEncoder, Repeat},
-        Delay, Frame, Rgb,
     };
     use jomini::common::PdsDate;
 
@@ -150,16 +150,18 @@ mod display {
                 if let Some(first) = first.get_internal().inner() {
                     let dynasty = first.get_house();
                     let dynasty = dynasty.as_ref().unwrap().get_internal();
-                    for desc in dynasty
-                        .inner()
-                        .unwrap()
-                        .get_founder()
-                        .get_internal()
-                        .inner()
-                        .unwrap()
-                        .get_descendants()
-                    {
+                    let dynasty = dynasty.inner().unwrap();
+
+                    let founder = dynasty.get_founder();
+                    let founder = founder.get_internal();
+                    let founder = founder.inner().unwrap();
+
+                    let mut stack: Vec<GameRef<Character>> = founder.get_children().clone();
+
+                    while let Some(desc) = stack.pop() {
                         if let Some(desc) = desc.get_internal().inner() {
+                            stack.extend_from_slice(desc.get_children());
+
                             if desc.get_death_date().is_some() {
                                 continue;
                             }
@@ -170,12 +172,7 @@ mod display {
                                     .get_dynasty()
                                     .get_internal()
                                     .deref()
-                                    == dynasty
-                                        .inner()
-                                        .unwrap()
-                                        .get_dynasty()
-                                        .get_internal()
-                                        .deref()
+                                    == dynasty.get_dynasty().get_internal().deref()
                             }) {
                                 &mut direct_titles
                             } else {

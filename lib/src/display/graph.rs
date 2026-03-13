@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use rand::{rng, Rng};
+use rand::{rng, RngExt};
 
 use plotters::{
     coord::types::{RangedCoordf64, RangedCoordi32},

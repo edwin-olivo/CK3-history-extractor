@@ -11,3 +11,4 @@ target*
 *.old
 *.json
 tokens_1.tok
+.DS_Store

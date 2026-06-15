@@ -3,8 +3,8 @@ use super::{
         super::game_data::{GameData, Localizable, LocalizationError, Localize},
         game_state::GameState,
         parser::{
-            types::{GameString, Wrapper, WrapperMut},
             GameObjectMap, GameObjectMapping, ParsingError,
+            types::{GameString, Wrapper, WrapperMut},
         },
     },
     Character, EntityRef, Finalize, FromGameObject, GameObjectDerived, GameRef, Title,
@@ -28,11 +28,9 @@ impl FromGameObject for Faith {
     ) -> Result<Self, ParsingError> {
         let mut val = Self {
             name: base
-                .get("name")
-                .or(base.get("template"))
-                .map(|v| v.as_string())
-                .transpose()?
-                .unwrap(),
+                .get_string("name")
+                .or_else(|_| base.get_string("template"))
+                .or_else(|_| base.get_string("tag"))?,
             fervor: base.get_real("fervor")? as f32,
             head_title: base
                 .get_game_id("religious_head")

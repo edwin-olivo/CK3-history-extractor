@@ -94,7 +94,7 @@ pub fn get_library_path() -> Result<PathBuf, SteamError> {
     }
     let mut library_path = None;
     let vdf_contents = read_to_string(&vdf_path).unwrap();
-    match Vdf::parse(&vdf_contents) {
+    match keyvalues_parser::parse(&vdf_contents).map(Vdf::from) {
         Ok(vdf) => {
             // vdf was parsed successfully
             if let Value::Obj(folders) = vdf.value {

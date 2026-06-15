@@ -1,0 +1,57 @@
+name: Build and attach binaries to Release
+
+on:
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build binary for ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux-x86_64
+            target: x86_64-unknown-linux-gnu
+            ext: ""
+            deps: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev
+          - os: macos-latest
+            label: macos-x86_64
+            target: x86_64-apple-darwin
+            ext: ""
+            deps: ""
+          - os: macos-latest
+            label: macos-aarch64
+            target: aarch64-apple-darwin
+            ext: ""
+            deps: ""
+          - os: windows-latest
+            label: windows-x86_64
+            target: x86_64-pc-windows-msvc
+            ext: ".exe"
+            deps: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        if: ${{ matrix.deps != '' }}
+        run: ${{ matrix.deps }}
+
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }} --features internal,permissive,tokens
+
+      - name: Upload binary to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/${{ matrix.target }}/release/ck3_history_extractor${{ matrix.ext }}
+          fail_on_unmatched_files: false
